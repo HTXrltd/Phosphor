@@ -1,9 +1,9 @@
 package me.jellysquid.mods.phosphor.common.chunk;
 
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.world.BlockView;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.world.IBlockReader;
 
 public interface ExtendedBlockState {
     /**
@@ -25,5 +25,5 @@ public interface ExtendedBlockState {
      * Creates a new VoxelShape which represents the light volume for the block in the specified context. This
      * will not be cached.
      */
-    VoxelShape getDynamicLightShape(BlockView view, BlockPos pos, Direction dir);
+    VoxelShape getDynamicLightShape(IBlockReader view, BlockPos pos, Direction dir);
 }

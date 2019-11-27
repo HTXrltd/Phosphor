@@ -1,20 +1,18 @@
 package me.jellysquid.mods.phosphor.common.util.cache;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.ChunkProvider;
-import net.minecraft.world.chunk.ChunkSection;
+import net.minecraft.world.IBlockReader;
+import net.minecraft.world.chunk.*;
 
 public class CachedChunkSectionAccess extends AbstractCachedAccess {
     private static final ChunkSection[] EMPTY_SECTION = new ChunkSection[16];
 
-    private final ChunkProvider chunkProvider;
+    private final IChunkLightProvider chunkProvider;
 
     @SuppressWarnings("unchecked")
     private CachedEntry<ChunkSection[]>[] cached = new CachedEntry[]{new CachedEntry<>(), new CachedEntry<>()};
 
-    public CachedChunkSectionAccess(ChunkProvider provider) {
+    public CachedChunkSectionAccess(IChunkLightProvider provider) {
         this.chunkProvider = provider;
     }
 
@@ -60,10 +58,10 @@ public class CachedChunkSectionAccess extends AbstractCachedAccess {
     }
 
     private ChunkSection[] getChunk(int chunkX, int chunkZ) {
-        Chunk chunk = (Chunk) this.chunkProvider.getChunk(chunkX, chunkZ);
+        IChunk reader = (IChunk) this.chunkProvider.getChunkForLight(chunkX, chunkZ);
 
-        if (chunk != null) {
-            return chunk.getSectionArray();
+        if (reader != null) {
+            return reader.getSections();
         }
 
         return EMPTY_SECTION;

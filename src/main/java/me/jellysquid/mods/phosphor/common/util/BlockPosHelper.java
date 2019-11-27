@@ -23,7 +23,7 @@ public class BlockPosHelper {
      * Quicker than re-encoding an integer {@link net.minecraft.util.math.BlockPos} when you only need to update one coordinate.
      * @param pos The integer position containing the old X/Z coordinate values
      * @param val The new y-coordinate to update {@param pos} with
-     * @return A new integer BlockPos which is identical to BlockPos.asLong(pos.x, y, pos.z)
+     * @return A new integer BlockPos which is identical to BlockPos.pack(pos.x, y, pos.z)
      */
     public static long updateYLong(long pos, int val) {
         return (pos & Y_MASK) | ((long) val & BITS_Y);

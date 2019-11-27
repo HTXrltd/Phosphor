@@ -1,18 +1,18 @@
-package me.jellysquid.mods.phosphor.mixin.chunk.light;
+package me.jellysquid.mods.phosphor.mixin.world.lighting;
 
 import me.jellysquid.mods.phosphor.common.chunk.ExtendedBlockState;
-import me.jellysquid.mods.phosphor.common.chunk.ExtendedMixinChunkLightProvider;
+import me.jellysquid.mods.phosphor.common.chunk.ExtendedLightEngine;
 import me.jellysquid.mods.phosphor.common.util.cache.CachedChunkSectionAccess;
 import net.minecraft.block.BlockState;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.LightType;
-import net.minecraft.world.chunk.ChunkProvider;
-import net.minecraft.world.chunk.WorldNibbleStorage;
-import net.minecraft.world.chunk.light.ChunkLightProvider;
-import net.minecraft.world.chunk.light.LightStorage;
+import net.minecraft.world.chunk.IChunkLightProvider;
+import net.minecraft.world.lighting.LightDataMap;
+import net.minecraft.world.lighting.LightEngine;
+import net.minecraft.world.lighting.SectionLightStorage;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -20,24 +20,25 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ChunkLightProvider.class)
-public class MixinChunkLightProvider<M extends WorldNibbleStorage<M>, S extends LightStorage<M>> implements ExtendedMixinChunkLightProvider {
+@Mixin(LightEngine.class)
+public class MixinLightEngine<M extends LightDataMap<M>, S extends SectionLightStorage<M>> implements ExtendedLightEngine<S> {
     @Shadow
     @Final
-    protected BlockPos.Mutable field_19284;
+    protected BlockPos.MutableBlockPos scratchPos;
 
     @Shadow
     @Final
-    protected ChunkProvider chunkProvider;
+    protected IChunkLightProvider chunkProvider;
 
+    @Shadow @Final protected S storage;
     private CachedChunkSectionAccess cacher;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void onConstructed(ChunkProvider provider, LightType lightType, S storage, CallbackInfo ci) {
+    private void onConstructed(IChunkLightProvider provider, LightType lightType, S storage, CallbackInfo ci) {
         this.cacher = new CachedChunkSectionAccess(provider);
     }
 
-    @Inject(method = "method_17530", at = @At("RETURN"))
+    @Inject(method = "invalidateCaches", at = @At("RETURN"))
     private void onCleanup(CallbackInfo ci) {
         // This callback may be executed from the constructor above, and the object won't be initialized then
         if (this.cacher != null) {
@@ -45,35 +46,35 @@ public class MixinChunkLightProvider<M extends WorldNibbleStorage<M>, S extends 
         }
     }
 
-    // [VanillaCopy] method_20479
+    // [VanillaCopy] getBlockAndOpacity
     @Override
     public BlockState getBlockStateForLighting(int x, int y, int z) {
         return this.cacher.getBlockState(x, y, z);
     }
 
-    // [VanillaCopy] method_20479
+    // [VanillaCopy] getBlockAndOpacity
     @Override
     public int getSubtractedLight(BlockState state, int x, int y, int z) {
-        return state.getLightSubtracted(this.chunkProvider.getWorld(), this.field_19284.set(x, y, z));
+        return state.getOpacity(this.chunkProvider.getWorld(), this.scratchPos.setPos(x, y, z));
     }
 
-    // [VanillaCopy] method_20479
+    // [VanillaCopy] getVoxelShape
     @Override
     public VoxelShape getVoxelShape(BlockState state, int x, int y, int z, Direction dir) {
         ExtendedBlockState estate = ((ExtendedBlockState) state);
 
-        if (estate.hasSpecialLightingShape()) {
+        if (state.isSolid() && state.func_215691_g()) {
             if (estate.hasDynamicShape()) {
-                return estate.getStaticLightShape(dir);
+                return estate.getDynamicLightShape(this.chunkProvider.getWorld(), this.scratchPos.setPos(x, y, z), dir);
             } else {
-                return estate.getDynamicLightShape(this.chunkProvider.getWorld(), this.field_19284.set(x, y, z), dir);
+                return estate.getStaticLightShape(dir);
             }
         } else {
             return VoxelShapes.empty();
         }
     }
 
-    // [VanillaCopy] method_20479
+    // [VanillaCopy] getBlockAndOpacity
     @Override
     public VoxelShape getVoxelShape(int x, int y, int z, Direction dir) {
         BlockState state = this.cacher.getBlockState(x, y, z);
@@ -83,5 +84,10 @@ public class MixinChunkLightProvider<M extends WorldNibbleStorage<M>, S extends 
         }
 
         return this.getVoxelShape(state, x, y, z, dir);
+    }
+
+    @Override
+    public S getStorage() {
+        return this.storage;
     }
 }

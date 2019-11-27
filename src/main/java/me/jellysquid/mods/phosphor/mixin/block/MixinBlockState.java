@@ -4,10 +4,10 @@ import me.jellysquid.mods.phosphor.common.chunk.ExtendedBlockState;
 import me.jellysquid.mods.phosphor.common.chunk.PhosphorBlockStateCache;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
+import net.minecraft.util.Direction;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.world.IBlockReader;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,25 +19,25 @@ public abstract class MixinBlockState implements ExtendedBlockState {
     private boolean shouldFetchCullState;
 
     @Shadow
-    public abstract VoxelShape method_11615(BlockView blockView_1, BlockPos blockPos_1);
+    public abstract VoxelShape getShape(IBlockReader reader, BlockPos pos);
 
     @Shadow
-    public abstract boolean isOpaque();
+    public abstract boolean isSolid();
 
     @Shadow
-    public abstract boolean hasSidedTransparency();
+    public abstract boolean func_215691_g();
 
     private PhosphorBlockStateCache phosphorBlockStateCache;
 
-    @Inject(method = "initShapeCache", at = @At(value = "RETURN"))
+    @Inject(method = "cacheState", at = @At(value = "RETURN"))
     private void onConstructed(CallbackInfo ci) {
         this.phosphorBlockStateCache = new PhosphorBlockStateCache(((BlockState) (Object) this));
-        this.shouldFetchCullState = this.isOpaque() && this.hasSidedTransparency();
+        this.shouldFetchCullState = this.isSolid() && this.func_215691_g();
     }
 
     @Override
     public boolean hasDynamicShape() {
-        return this.phosphorBlockStateCache != null;
+        return this.phosphorBlockStateCache == null;
     }
 
     @Override
@@ -51,7 +51,7 @@ public abstract class MixinBlockState implements ExtendedBlockState {
     }
 
     @Override
-    public VoxelShape getDynamicLightShape(BlockView view, BlockPos pos, Direction dir) {
-        return VoxelShapes.method_16344(this.method_11615(view, pos), dir);
+    public VoxelShape getDynamicLightShape(IBlockReader view, BlockPos pos, Direction dir) {
+        return VoxelShapes.func_216387_a(this.getShape(view, pos), dir);
     }
 }
