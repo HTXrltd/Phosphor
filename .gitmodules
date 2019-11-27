@@ -1,0 +1,3 @@
+[submodule "lib/Mixin"]
+	path = lib/Mixin
+	url = https://github.com/jellysquid3/Mixin.git
