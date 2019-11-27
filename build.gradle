@@ -15,7 +15,7 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.spongepowered.mixin'
 
-version = '0.3.0'
+version = '0.3.0-forge'
 group = 'me.jellysquid.mods.phosphor' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'phosphor'
 
