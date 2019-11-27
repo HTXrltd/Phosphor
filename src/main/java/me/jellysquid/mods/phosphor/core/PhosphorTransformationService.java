@@ -4,6 +4,7 @@ import cpw.mods.modlauncher.api.IEnvironment;
 import cpw.mods.modlauncher.api.ITransformationService;
 import cpw.mods.modlauncher.api.ITransformer;
 import cpw.mods.modlauncher.api.IncompatibleEnvironmentException;
+import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.Mixins;
 
 import javax.annotation.Nonnull;
@@ -30,6 +31,7 @@ public class PhosphorTransformationService implements ITransformationService {
 
     @Override
     public void onLoad(IEnvironment env, Set<String> otherServices) throws IncompatibleEnvironmentException {
+        MixinBootstrap.init();
         Mixins.addConfiguration("phosphor.mixins.json");
     }
 
